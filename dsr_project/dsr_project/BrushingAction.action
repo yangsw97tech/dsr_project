@@ -1,0 +1,12 @@
+# Goal
+bool start_task
+---
+# Result
+bool complete_task
+float64[6] final_pose
+float64 total_duration
+---
+# Feedback
+string feedback_string
+int32 current_stroke
+float32 progress_percentage  # [추가] 0.0 ~ 100.0 사이의 값

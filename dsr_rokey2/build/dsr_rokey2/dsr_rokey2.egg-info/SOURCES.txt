@@ -1,0 +1,17 @@
+package.xml
+setup.cfg
+setup.py
+dsr_rokey2/__init__.py
+dsr_rokey2/force_test.py
+dsr_rokey2/grip_test.py
+dsr_rokey2/joint90.py
+dsr_rokey2/move_basic.py
+dsr_rokey2/move_periodic.py
+dsr_rokey2.egg-info/PKG-INFO
+dsr_rokey2.egg-info/SOURCES.txt
+dsr_rokey2.egg-info/dependency_links.txt
+dsr_rokey2.egg-info/entry_points.txt
+dsr_rokey2.egg-info/requires.txt
+dsr_rokey2.egg-info/top_level.txt
+dsr_rokey2.egg-info/zip-safe
+resource/dsr_rokey2

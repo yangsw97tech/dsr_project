@@ -1,0 +1,7 @@
+[console_scripts]
+force_test = dsr_rokey2.force_test:main
+grip_test = dsr_rokey2.grip_test:main
+joint90 = dsr_visualservoing.joint90:main
+move_basic = dsr_rokey2.move_basic:main
+move_periodic = dsr_rokey2.move_periodic:main
+

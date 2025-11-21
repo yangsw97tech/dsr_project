@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로봇 공정 실시간 모니터링</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        .status-badge {
+            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-8 font-sans">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-6 border-b-4 border-indigo-500 pb-2">
+            [DSR-01] 가구 공정 로봇 모니터링
+        </h1>
+
+        <!-- 상태 요약 카드 -->
+        <div id="status-summary" class="bg-white p-6 rounded-xl shadow-2xl mb-8">
+            <h2 class="text-2xl font-semibold text-indigo-600 mb-4">현재 상태 요약</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 border-l-4 border-green-500 bg-green-50 rounded-md">
+                    <p class="text-sm text-gray-500">로봇 이름</p>
+                    <p id="robot-name" class="text-xl font-bold text-gray-800">로딩 중...</p>
+                </div>
+                <div class="p-4 border-l-4 border-indigo-500 bg-indigo-50 rounded-md">
+                    <p class="text-sm text-gray-500">현재 공정 단계</p>
+                    <p id="current-step" class="text-xl font-bold text-gray-800">로딩 중...</p>
+                </div>
+                <div class="p-4 border-l-4 border-yellow-500 bg-yellow-50 rounded-md col-span-1 md:col-span-2">
+                    <p class="text-sm text-gray-500">동작 상태</p>
+                    <span id="status-text" class="status-badge bg-gray-300 text-gray-700">로딩 중</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 상세 데이터 테이블 -->
+        <div class="bg-white p-6 rounded-xl shadow-2xl">
+            <h2 class="text-2xl font-semibold text-indigo-600 mb-4">상세 위치 및 각도</h2>
+            <table class="min-w-full divide-y divide-gray-200 rounded-lg overflow-hidden">
+                <thead class="bg-indigo-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">구분</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">값</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">단위</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">TCP X</td>
+                        <td id="tcp-x" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">N/A</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">mm</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">TCP Y</td>
+                        <td id="tcp-y" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">N/A</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">mm</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">TCP Z</td>
+                        <td id="tcp-z" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">N/A</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">mm</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Joint 1 각도</td>
+                        <td id="joint-angle-j1" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">N/A</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">deg</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p id="last-updated" class="mt-4 text-xs text-right text-gray-500">마지막 업데이트: N/A</p>
+        </div>
+
+        <div id="error-message" class="hidden mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg" role="alert">
+            <span class="font-bold">오류: </span> <span id="error-detail">Firebase 연결 실패</span>
+        </div>
+    </div>
+
+    <script>
+
+                // Import the functions you need from the SDKs you need
+        import { initializeApp } from "firebase/app";
+        import { getAnalytics } from "firebase/analytics";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+        apiKey: "AIzaSyB_0A1vllx9iS9woNY5msdpFTaBAH88mCc",
+        authDomain: "myfirstdatabase-ecd05.firebaseapp.com",
+        databaseURL: "https://myfirstdatabase-ecd05-default-rtdb.firebaseio.com",
+        projectId: "myfirstdatabase-ecd05",
+        storageBucket: "myfirstdatabase-ecd05.firebasestorage.app",
+        messagingSenderId: "319785332272",
+        appId: "1:319785332272:web:40333f855d5098586dc7f5",
+        measurementId: "G-BXZZHT0C9D"
+        };
+
+
+        // 데이터가 저장되는 경로 (monitoring_node.py에서 사용한 경로와 일치해야 합니다)
+        const ROBOT_STATUS_PATH = 'robot_status'; 
+
+        // Firebase 초기화
+        let app;
+        let db;
+        try {
+            app = firebase.initializeApp(FIREBASE_CONFIG);
+            db = firebase.database();
+        } catch (e) {
+            document.getElementById('error-detail').innerText = 'Firebase 설정 오류: Config를 확인해주세요.';
+            document.getElementById('error-message').classList.remove('hidden');
+        }
+
+        // 상태 코드에 따른 Tailwind 클래스 매핑
+        const STATUS_CLASSES = {
+            'IDLE': 'bg-green-100 text-green-700 border-green-500',
+            'PICKING': 'bg-yellow-100 text-yellow-700 border-yellow-500',
+            'SANDING': 'bg-indigo-100 text-indigo-700 border-indigo-500',
+            'OILING': 'bg-blue-100 text-blue-700 border-blue-500',
+            'ERROR': 'bg-red-100 text-red-700 border-red-500',
+            'ROBOT_STATE_READY': 'bg-green-100 text-green-700 border-green-500',
+            // GIF 파일에서 확인된 상태값 매핑 (필요 시 추가)
+            'ROBOT_STATE_STANDBY': 'bg-green-100 text-green-700 border-green-500',
+            'ROBOT_STATE_AUTONOMOUS': 'bg-indigo-100 text-indigo-700 border-indigo-500',
+        };
+
+        function updateDashboard(data) {
+            if (!data) return;
+
+            // 1. 상태 배지 업데이트
+            const statusTextElement = document.getElementById('status-text');
+            const status = data.status || data.ROBOT_STATE || 'UNKNOWN'; // ROS 노드 또는 GIF의 구조에 따라 필드명 선택
+            const statusClass = STATUS_CLASSES[status] || 'bg-gray-300 text-gray-700 border-gray-500';
+
+            statusTextElement.className = `status-badge ${statusClass}`;
+            statusTextElement.innerText = status;
+
+            // 2. 주요 정보 업데이트
+            document.getElementById('robot-name').innerText = data.robot_name || 'dsr01';
+            document.getElementById('current-step').innerText = data.current_step || '공정 정보 없음';
+            
+            // 3. 상세 데이터 업데이트 (toFixed(2)로 소수점 둘째 자리까지 표시)
+            document.getElementById('tcp-x').innerText = (data.tcp_x || 0).toFixed(2);
+            document.getElementById('tcp-y').innerText = (data.tcp_y || 0).toFixed(2);
+            document.getElementById('tcp-z').innerText = (data.tcp_z || 0).toFixed(2);
+            document.getElementById('joint-angle-j1').innerText = (data.joint_angle_j1 || 0).toFixed(2);
+
+            // 4. 마지막 업데이트 시간 업데이트
+            if (data.last_updated) {
+                const timestamp = new Date(data.last_updated * 1000); // Unix Timestamp를 밀리초로 변환
+                document.getElementById('last-updated').innerText = 
+                    '마지막 업데이트: ' + timestamp.toLocaleTimeString('ko-KR');
+            }
+        }
+
+        // Firebase 데이터 리스너 설정
+        if (db) {
+            const robotRef = db.ref(ROBOT_STATUS_PATH);
+            
+            // 데이터가 변경될 때마다 updateDashboard 함수 호출
+            robotRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    updateDashboard(data);
+                    document.getElementById('error-message').classList.add('hidden');
+                } else {
+                    document.getElementById('error-detail').innerText = '데이터베이스에 데이터가 없습니다.';
+                    document.getElementById('error-message').classList.remove('hidden');
+                }
+            }, (error) => {
+                console.error("Firebase Read Failed:", error);
+                document.getElementById('error-detail').innerText = 'Firebase 데이터 읽기 실패: ' + error.message;
+                document.getElementById('error-message').classList.remove('hidden');
+            });
+        }
+    </script>
+</body>
+</html>

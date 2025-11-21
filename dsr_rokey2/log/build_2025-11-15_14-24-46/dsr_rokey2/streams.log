@@ -1,0 +1,28 @@
+[0.609s] Invoking command in '/home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/build/dsr_rokey2': PYTHONPATH=/home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/build/dsr_rokey2/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/build/dsr_rokey2/build --no-deps symlink_data
+[0.824s] running develop
+[0.978s] running egg_info
+[0.979s] creating dsr_rokey2.egg-info
+[0.979s] writing dsr_rokey2.egg-info/PKG-INFO
+[0.979s] writing dependency_links to dsr_rokey2.egg-info/dependency_links.txt
+[0.979s] writing entry points to dsr_rokey2.egg-info/entry_points.txt
+[0.979s] writing requirements to dsr_rokey2.egg-info/requires.txt
+[0.979s] writing top-level names to dsr_rokey2.egg-info/top_level.txt
+[0.979s] writing manifest file 'dsr_rokey2.egg-info/SOURCES.txt'
+[0.980s] reading manifest file 'dsr_rokey2.egg-info/SOURCES.txt'
+[0.981s] writing manifest file 'dsr_rokey2.egg-info/SOURCES.txt'
+[0.982s] running build_ext
+[0.982s] Creating /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/python3.10/site-packages/dsr-rokey2.egg-link (link to .)
+[0.983s] Installing force_test script to /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/dsr_rokey2
+[0.983s] Installing grip_test script to /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/dsr_rokey2
+[0.983s] Installing joint90 script to /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/dsr_rokey2
+[0.983s] Installing move_basic script to /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/dsr_rokey2
+[0.983s] Installing move_periodic script to /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/dsr_rokey2
+[0.984s] 
+[0.984s] Installed /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/build/dsr_rokey2
+[0.984s] running symlink_data
+[0.984s] creating /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/share/ament_index
+[0.984s] creating /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/share/ament_index/resource_index
+[0.984s] creating /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/share/ament_index/resource_index/packages
+[0.984s] symbolically linking /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/build/dsr_rokey2/resource/dsr_rokey2 -> /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/share/ament_index/resource_index/packages
+[0.984s] symbolically linking /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/build/dsr_rokey2/package.xml -> /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/share/dsr_rokey2
+[1.032s] Invoked command in '/home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/build/dsr_rokey2' returned '0': PYTHONPATH=/home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/build/dsr_rokey2/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/build/dsr_rokey2/build --no-deps symlink_data

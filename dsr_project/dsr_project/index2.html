@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[DSR-01] 가구 공정 로봇 모니터링</title>
+    <style>
+        /* --- 기본 스타일 --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa; /* (배경색) */
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        /* --- 헤더 --- */
+        .header {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 4px solid #6633cc; /* (보라색 계열) */
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        /* --- 카드 레이아웃 --- */
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            padding: 24px;
+        }
+        .card-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        /* --- 1. 상태 요약 (Flexbox) --- */
+        .summary-grid {
+            display: flex;
+            gap: 16px;
+        }
+        .summary-item {
+            flex: 1; /* 1:1:1 비율 */
+            padding: 16px;
+            border-radius: 8px;
+        }
+        .summary-item .label {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        .summary-item .value {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        /* 이미지와 유사한 색상 */
+        .summary-item.bg-green { background-color: #e6f9f0; }
+        .summary-item.bg-green .value { color: #008a4c; }
+        
+        .summary-item.bg-blue { background-color: #e6f3ff; }
+        .summary-item.bg-blue .value { color: #0069d9; }
+        
+        .summary-item.bg-yellow { background-color: #fff9e6; }
+        .summary-item.bg-yellow .value { color: #b8860b; }
+
+        /* --- 2. 상세 위치 (테이블) --- */
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .detail-table th, .detail-table td {
+            text-align: left;
+            padding: 14px 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .detail-table th {
+            font-weight: 600;
+            color: #888;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+        .detail-table td:nth-child(2) {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-weight: 600;
+            color: #111;
+        }
+        .detail-table td:nth-child(3) {
+            color: #777;
+        }
+
+        /* --- 3. 명령 전송 --- */
+        .command-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .command-buttons button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        #start-button {
+            background-color: #007bff;
+            color: white;
+        }
+        #start-button:hover { background-color: #0056b3; }
+        
+        #stop-button {
+            background-color: #dc3545;
+            color: white;
+        }
+        #stop-button:hover { background-color: #a71d2a; }
+
+        #command-status {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* --- 하단 타임스탬프 --- */
+        .footer {
+            text-align: right;
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>[DSR-01] 가구 공정 로봇 모니터링</h1>
+    </div>
+
+    <div class="card">
+        <div class="card-header">현재 상태 요약</div>
+        <div class="summary-grid">
+            <div class="summary-item bg-green">
+                <div class="label">로봇 이름</div>
+                <div class="value" id="robot_name">로딩 중...</div>
+            </div>
+            <div class="summary-item bg-blue">
+                <div class="label">현재 공정 단계</div>
+                <div class="value" id="current_step">로딩 중...</div>
+            </div>
+            <div class="summary-item bg-yellow">
+                <div class="label">동작 상태</div>
+                <div class="value" id="status" data-status="IDLE">로딩 중...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">상세 위치 및 각도</div>
+        <table class="detail-table">
+            <thead>
+                <tr>
+                    <th>구분</th>
+                    <th>값</th>
+                    <th>단위</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>TCP X</td>
+                    <td id="tcp_x">N/A</td>
+                    <td>mm</td>
+                </tr>
+                <tr>
+                    <td>TCP Y</td>
+                    <td id="tcp_y">N/A</td>
+                    <td>mm</td>
+                </tr>
+                <tr>
+                    <td>TCP Z</td>
+                    <td id="tcp_z">N/A</td>
+                    <td>mm</td>
+                </tr>
+                <tr>
+                    <td>Joint 1 각도</td>
+                    <td id="joint_angle_j1">N/A</td>
+                    <td>deg</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="footer">
+            마지막 업데이트: <span id="last_updated">N/A</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">명령 전송</div>
+        <div class="command-buttons">
+            <button id="start-button">작업 시작 (START)</button>
+            <button id="stop-button">긴급 정지 (STOP)</button>
+        </div>
+        <div id="command-status">대기 중...</div>
+    </div>
+
+
+    <script type="module">
+        // 1. Firebase SDK 스크립트 임포트
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        // [수정] getDatabase, ref, onValue 외에 'set'을 추가
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+
+        // 2. ⭐️⭐️⭐️ Firebase 구성 정보를 여기에 붙여넣으세요. ⭐️⭐️⭐️
+        const firebaseConfig = {
+            apiKey: "AIzaSy...YOUR_KEY...",
+            authDomain: "myfirstdatabase-ecd05.firebaseapp.com",
+            databaseURL: "https://myfirstdatabase-ecd05-default-rtdb.firebaseio.com",
+            // ... (나머지 값들도 모두 붙여넣기)
+        };
+        // ⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️⭐️
+
+        // 3. Firebase 앱 및 데이터베이스 초기화
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // 4. 경로 정의 (2개)
+        const robotStatusRef = ref(database, "robot_status");
+        const robotCommandRef = ref(database, "robot_command"); // [신규] 명령 경로
+
+        // 5. [읽기] 데이터 변경을 실시간으로 감지 (onValue)
+        onValue(robotStatusRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                
+                // HTML 태그 ID에 맞춰 데이터를 업데이트
+                document.getElementById("robot_name").innerText = data.robot_name;
+                document.getElementById("current_step").innerText = data.current_step;
+                
+                // 상태(Status)
+                const statusEl = document.getElementById("status");
+                statusEl.innerText = data.status;
+
+                // 숫자는 소수점 2자리까지 표시
+                document.getElementById("tcp_x").innerText = data.tcp_x.toFixed(2);
+                document.getElementById("tcp_y").innerText = data.tcp_y.toFixed(2);
+                document.getElementById("tcp_z").innerText = data.tcp_z.toFixed(2);
+                document.getElementById("joint_angle_j1").innerText = data.joint_angle_j1.toFixed(2);
+                
+                // 타임스탬프
+                const updateTime = new Date(data.last_updated * 1000);
+                document.getElementById("last_updated").innerText = updateTime.toLocaleString();
+                
+            } else {
+                console.log("DB 경로에 데이터가 없습니다: robot_status");
+            }
+        });
+
+        // 6. [쓰기] 버튼 클릭 리스너 (새로 추가된 부분)
+        const startButton = document.getElementById("start-button");
+        const stopButton = document.getElementById("stop-button");
+        const commandStatus = document.getElementById("command-status");
+
+        function sendCommand(command) {
+            const commandData = {
+                command: command,
+                timestamp: Math.floor(Date.now() / 1000) // 현재 시간 (초)
+            };
+            
+            // Firebase의 'robot_command' 경로에 데이터 쓰기
+            set(robotCommandRef, commandData)
+                .then(() => {
+                    commandStatus.innerText = `'${command}' 명령 전송 성공!`;
+                })
+                .catch((error) => {
+                    commandStatus.innerText = `명령 전송 실패: ${error.message}`;
+                });
+        }
+
+        startButton.onclick = () => sendCommand("START");
+        stopButton.onclick = () => sendCommand("STOP");
+
+    </script>
+
+</body>
+</html>

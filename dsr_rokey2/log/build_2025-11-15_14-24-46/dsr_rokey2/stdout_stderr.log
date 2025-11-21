@@ -1,0 +1,26 @@
+running develop
+running egg_info
+creating dsr_rokey2.egg-info
+writing dsr_rokey2.egg-info/PKG-INFO
+writing dependency_links to dsr_rokey2.egg-info/dependency_links.txt
+writing entry points to dsr_rokey2.egg-info/entry_points.txt
+writing requirements to dsr_rokey2.egg-info/requires.txt
+writing top-level names to dsr_rokey2.egg-info/top_level.txt
+writing manifest file 'dsr_rokey2.egg-info/SOURCES.txt'
+reading manifest file 'dsr_rokey2.egg-info/SOURCES.txt'
+writing manifest file 'dsr_rokey2.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/python3.10/site-packages/dsr-rokey2.egg-link (link to .)
+Installing force_test script to /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/dsr_rokey2
+Installing grip_test script to /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/dsr_rokey2
+Installing joint90 script to /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/dsr_rokey2
+Installing move_basic script to /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/dsr_rokey2
+Installing move_periodic script to /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/lib/dsr_rokey2
+
+Installed /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/build/dsr_rokey2
+running symlink_data
+creating /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/share/ament_index
+creating /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/share/ament_index/resource_index
+creating /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/share/ament_index/resource_index/packages
+symbolically linking /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/build/dsr_rokey2/resource/dsr_rokey2 -> /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/share/ament_index/resource_index/packages
+symbolically linking /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/build/dsr_rokey2/package.xml -> /home/jy/cobot1_ws/src/doosan-robot2/dsr_rokey2/install/dsr_rokey2/share/dsr_rokey2

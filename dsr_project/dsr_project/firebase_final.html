@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Monitoring System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+        // 🔴 [중요] 본인의 Firebase 설정을 여기에 입력하세요
+        // const firebaseConfig = {
+        //     apiKey: "YOUR_API_KEY",
+        //     authDomain: "myfirstdatabase-ecd05.firebaseapp.com",
+        //     databaseURL: "https://myfirstdatabase-ecd05-default-rtdb.firebaseio.com",
+        //     projectId: "myfirstdatabase-ecd05",
+        //     storageBucket: "myfirstdatabase-ecd05.appspot.com",
+        //     messagingSenderId: "YOUR_SENDER_ID",
+        //     appId: "YOUR_APP_ID"
+        // };
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_0A1vllx9iS9woNY5msdpFTaBAH88mCc",
+            authDomain: "myfirstdatabase-ecd05.firebaseapp.com",
+            databaseURL: "https://myfirstdatabase-ecd05-default-rtdb.firebaseio.com",
+            projectId: "myfirstdatabase-ecd05",
+            storageBucket: "myfirstdatabase-ecd05.firebasestorage.app",
+            messagingSenderId: "319785332272",
+            appId: "1:319785332272:web:40333f855d5098586dc7f5",
+            measurementId: "G-BXZZHT0C9D"
+        };
+
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // --- 데이터 수신 (Monitoring) ---
+        const statusRef = ref(db, 'robot_status');
+        onValue(statusRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                updateUI(data);
+            }
+        });
+
+        function updateUI(data) {
+            // 시스템 상태
+            const stateEl = document.getElementById('sysState');
+            stateEl.innerText = data.system_state || "UNKNOWN";
+            if(data.system_state === "RUNNING") stateEl.className = "text-2xl font-bold text-green-400 animate-pulse";
+            else if(data.system_state === "PAUSED") stateEl.className = "text-2xl font-bold text-yellow-400";
+            else stateEl.className = "text-2xl font-bold text-gray-400";
+
+            // 상세 정보
+            document.getElementById('curTask').innerText = data.current_task || "-";
+            document.getElementById('detail').innerText = data.detail || "-";
+
+            // 1. Total Progress (파란색)
+            const totalProg = data.total_progress || 0;
+            const totalBar = document.getElementById('totalProgressBar');
+            totalBar.style.width = totalProg + "%";
+            totalBar.innerText = totalProg + "%";
+
+            // 2. Step Progress (초록색)
+            const stepProg = data.current_step_progress || 0;
+            const stepBar = document.getElementById('stepProgressBar');
+            stepBar.style.width = stepProg + "%";
+            stepBar.innerText = stepProg + "%";
+
+            // 로그 출력
+            const logBox = document.getElementById('logBox');
+            if (data.logs) {
+                logBox.innerHTML = data.logs.map(log => `<div class="text-xs text-gray-300 border-b border-gray-700 py-1 font-mono">${log}</div>`).join('');
+                logBox.scrollTop = logBox.scrollHeight;
+            }
+        }
+
+        // --- 명령 전송 ---
+        window.sendCommand = function(cmdString) {
+            const cmdRef = ref(db, 'robot_command');
+            set(cmdRef, {
+                cmd: cmdString,
+                timestamp: Date.now()
+            }).catch((error) => {
+                alert("명령 전송 실패: " + error);
+            });
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen">
+
+    <div class="container mx-auto p-4 max-w-5xl">
+        <header class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+            <div class="flex items-center gap-3">
+                <span class="text-4xl">🤖</span>
+                <h1 class="text-2xl md:text-3xl font-bold text-blue-400 tracking-tight">Smart Factory Monitor</h1>
+            </div>
+            <div class="text-right">
+                <div class="text-gray-400 text-xs uppercase tracking-wider mb-1">System State</div>
+                <div id="sysState" class="text-2xl font-bold text-gray-500">CONNECTING...</div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">⚙️</div>
+                    <h2 class="text-lg font-semibold mb-4 text-blue-400 flex items-center gap-2">
+                        <span class="w-2 h-6 bg-blue-500 rounded-full"></span>
+                        Current Process
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <div class="text-gray-500 text-sm mb-1">Task Name</div>
+                            <div id="curTask" class="text-2xl md:text-3xl font-bold text-white">대기 중</div>
+                        </div>
+                        <div>
+                            <div class="text-gray-500 text-sm mb-1">Detail</div>
+                            <div id="detail" class="text-lg text-yellow-400 font-mono">-</div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-xs font-medium text-gray-400 uppercase">Total Progress (전체 공정)</span>
+                                <span class="text-xs font-medium text-blue-400">Overall Completion</span>
+                            </div>
+                            <div class="w-full bg-gray-900 rounded-full h-4 border border-gray-700 overflow-hidden">
+                                <div id="totalProgressBar" class="bg-gradient-to-r from-blue-600 to-blue-400 h-full rounded-full text-center text-[10px] font-bold leading-4 transition-all duration-300 ease-out" style="width: 0%">0%</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-xs font-medium text-gray-400 uppercase">Step Progress (현재 단계)</span>
+                                <span class="text-xs font-medium text-green-400">Current Step</span>
+                            </div>
+                            <div class="w-full bg-gray-900 rounded-full h-3 border border-gray-700 overflow-hidden">
+                                <div id="stepProgressBar" class="bg-gradient-to-r from-green-600 to-green-400 h-full rounded-full text-center text-[9px] font-bold leading-3 transition-all duration-300 ease-out" style="width: 0%">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
+                    <h2 class="text-lg font-semibold mb-4 text-green-400 flex items-center gap-2">
+                        <span class="w-2 h-6 bg-green-500 rounded-full"></span>
+                        Main Control
+                    </h2>
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <button onclick="sendCommand('START_ALL')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-4 rounded-lg shadow-lg transition transform active:scale-95 flex flex-col items-center justify-center gap-1">
+                            <span class="text-2xl">🚀</span>
+                            <span>START ALL</span>
+                        </button>
+                        <button onclick="sendCommand('PAUSE')" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-4 px-4 rounded-lg shadow-lg transition transform active:scale-95 flex flex-col items-center justify-center gap-1">
+                            <span class="text-2xl">⏸️</span>
+                            <span>PAUSE</span>
+                        </button>
+                        <button onclick="sendCommand('RESUME')" class="bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-4 rounded-lg shadow-lg transition transform active:scale-95 flex flex-col items-center justify-center gap-1">
+                            <span class="text-2xl">▶️</span>
+                            <span>RESUME</span>
+                        </button>
+                    </div>
+
+                    <h3 class="text-xs font-semibold mb-3 text-gray-500 uppercase tracking-widest">Individual Debug Actions</h3>
+                    <div class="grid grid-cols-5 gap-2">
+                        <button onclick="sendCommand('START_DOMA_PICK')" class="bg-gray-700 hover:bg-gray-600 py-2 rounded text-xs transition">1. Pick</button>
+                        <button onclick="sendCommand('START_ERASING')" class="bg-gray-700 hover:bg-gray-600 py-2 rounded text-xs transition">2. Erase</button>
+                        <button onclick="sendCommand('START_BRUSHING')" class="bg-gray-700 hover:bg-gray-600 py-2 rounded text-xs transition">3. Brush</button>
+                        <button onclick="sendCommand('START_OILING')" class="bg-gray-700 hover:bg-gray-600 py-2 rounded text-xs transition">4. Oil</button>
+                        <button onclick="sendCommand('START_DOMA_PLACE')" class="bg-gray-700 hover:bg-gray-600 py-2 rounded text-xs transition">5. Place</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 flex flex-col h-[500px] lg:h-auto">
+                <h2 class="text-lg font-semibold mb-3 text-gray-400 flex items-center gap-2 border-b border-gray-700 pb-3">
+                    <span class="text-xl">📜</span> System Logs
+                </h2>
+                <div id="logBox" class="flex-1 bg-gray-900 rounded-lg p-3 overflow-y-auto font-mono border border-gray-700 custom-scrollbar">
+                    <div class="text-gray-600 text-xs italic text-center mt-4">Waiting for logs...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center text-gray-600 text-xs mt-8 border-t border-gray-800 pt-4">
+            Robot Monitoring System Interface &copy; 2024 | Connected to Firebase
+        </div>
+    </div>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1a1a1a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
+    </style>
+</body>
+</html>
